@@ -11,3 +11,4 @@ pyttsx3
 pyqrcode
 python-barcode
 pytz
+exceptions
