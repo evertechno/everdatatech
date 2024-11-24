@@ -1,5 +1,4 @@
 import streamlit as st
-import os
 from tempfile import NamedTemporaryFile
 from fpdf import FPDF
 import markdown
@@ -9,10 +8,6 @@ import xml.etree.ElementTree as ET
 import pyqrcode
 import barcode
 from barcode.writer import ImageWriter
-import pytz
-from datetime import datetime
-from io import BytesIO
-import pandas as pd
 import pyttsx3
 import speech_recognition as sr
 from moviepy.editor import VideoFileClip
@@ -21,7 +16,6 @@ from ebooklib import epub
 import shutil
 import zipfile
 from pptx import Presentation
-import io
 
 # Streamlit App UI Setup
 st.title("Advanced File Conversion Platform with AI Assistant")
@@ -202,45 +196,6 @@ def compress_folder(input_folder, output_file):
     except Exception as e:
         return f"Error in folder compression: {str(e)}"
 
-# New Advanced Functions
-def csv_to_excel(input_file, output_file):
-    try:
-        df = pd.read_csv(input_file)
-        df.to_excel(output_file, index=False)
-        return output_file
-    except Exception as e:
-        return f"Error in CSV to Excel conversion: {str(e)}"
-
-def excel_to_csv(input_file, output_file):
-    try:
-        df = pd.read_excel(input_file)
-        df.to_csv(output_file, index=False)
-        return output_file
-    except Exception as e:
-        return f"Error in Excel to CSV conversion: {str(e)}"
-
-def markdown_to_text(input_file, output_file):
-    try:
-        with open(input_file, 'r') as file:
-            markdown_content = file.read()
-        text_content = markdown.markdown(markdown_content)
-        with open(output_file, 'w') as file:
-            file.write(text_content)
-        return output_file
-    except Exception as e:
-        return f"Error in Markdown to Text conversion: {str(e)}"
-
-def text_to_markdown(input_file, output_file):
-    try:
-        with open(input_file, 'r') as file:
-            text_content = file.read()
-        markdown_content = markdown.markdown(text_content)
-        with open(output_file, 'w') as file:
-            file.write(markdown_content)
-        return output_file
-    except Exception as e:
-        return f"Error in Text to Markdown conversion: {str(e)}"
-
 def text_file_cleaner(input_file, output_file):
     try:
         with open(input_file, 'r') as file:
@@ -252,39 +207,69 @@ def text_file_cleaner(input_file, output_file):
     except Exception as e:
         return f"Error in Text File Cleaner: {str(e)}"
 
-# Handle file upload and processing
-if uploaded_file is not None:
-    # Handle different conversion options
-    if conversion_type == "PPT to PDF":
-        output_file = convert_ppt_to_pdf(uploaded_file, "output.pdf")
-    elif conversion_type == "TXT to PDF":
-        output_file = convert_txt_to_pdf(uploaded_file, "output.pdf")
-    elif conversion_type == "MD to PDF":
-        output_file = convert_md_to_pdf(uploaded_file, "output.pdf")
-    elif conversion_type == "HTML to PDF":
-        output_file = convert_html_to_pdf(uploaded_file, "output.pdf")
-    elif conversion_type == "EPUB to PDF":
-        output_file = convert_epub_to_pdf(uploaded_file, "output.pdf")
-    elif conversion_type == "JSON to PDF":
-        output_file = convert_json_to_pdf(uploaded_file, "output.pdf")
-    elif conversion_type == "XML to PDF":
-        output_file = convert_xml_to_pdf(uploaded_file, "output.pdf")
-    elif conversion_type == "Image to PDF":
-        output_file = convert_image_to_pdf(uploaded_file, "output.pdf")
-    elif conversion_type == "QR Code Generator":
-        output_file = generate_qr_code("sample text", "output_qr.png")
-    elif conversion_type == "Barcode Generator":
-        output_file = generate_barcode("123456789012", "output_barcode.png")
-    elif conversion_type == "Audio to Text":
-        output_file = convert_audio_to_text(uploaded_file)
-    elif conversion_type == "Text to Speech":
-        output_file = text_to_speech("Hello world!", "output_audio.mp3")
-    elif conversion_type == "Video to Audio":
-        output_file = convert_video_to_audio(uploaded_file, "output_audio.mp3")
-    elif conversion_type == "Text File Cleaner":
-        output_file = text_file_cleaner(uploaded_file, "cleaned_output.txt")
-    else:
-        output_file = "Unsupported conversion type."
+# Handle file upload and conversion process
+if uploaded_file:
+    # Process uploaded file
+    with NamedTemporaryFile(delete=False) as tmp_file:
+        tmp_file.write(uploaded_file.getvalue())
+        tmp_file_path = tmp_file.name
 
-    st.download_button("Download Output", output_file)
+    result = "No conversion performed"  # Default value for result
+    output_file = None  # Initialize output_file as None
 
+    try:
+        if conversion_type == "PPT to PDF":
+            output_file = tmp_file_path.replace(".pptx", ".pdf")
+            result = convert_ppt_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "TXT to PDF":
+            output_file = tmp_file_path.replace(".txt", ".pdf")
+            result = convert_txt_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "MD to PDF":
+            output_file = tmp_file_path.replace(".md", ".pdf")
+            result = convert_md_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "HTML to PDF":
+            output_file = tmp_file_path.replace(".html", ".pdf")
+            result = convert_html_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "EPUB to PDF":
+            output_file = tmp_file_path.replace(".epub", ".pdf")
+            result = convert_epub_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "JSON to PDF":
+            output_file = tmp_file_path.replace(".json", ".pdf")
+            result = convert_json_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "XML to PDF":
+            output_file = tmp_file_path.replace(".xml", ".pdf")
+            result = convert_xml_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "Image to PDF":
+            output_file = tmp_file_path.replace(".jpg", ".pdf")
+            result = convert_image_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "Audio to Text":
+            result = convert_audio_to_text(tmp_file_path)
+        elif conversion_type == "Text to Speech":
+            output_audio = tmp_file_path.replace(".txt", ".mp3")
+            result = text_to_speech(tmp_file.read().decode(), output_audio)
+        elif conversion_type == "Video to Audio":
+            output_audio = tmp_file_path.replace(".mp4", ".mp3")
+            result = convert_video_to_audio(tmp_file_path, output_audio)
+        elif conversion_type == "QR Code Generator":
+            output_file = tmp_file_path.replace(".txt", ".png")
+            result = generate_qr_code(tmp_file.read().decode(), output_file)
+        elif conversion_type == "Barcode Generator":
+            output_file = tmp_file_path.replace(".txt", ".png")
+            result = generate_barcode(tmp_file.read().decode(), output_file)
+        elif conversion_type == "Extract ZIP":
+            output_folder = tmp_file_path.replace(".zip", "")
+            result = extract_zip(tmp_file_path, output_folder)
+        elif conversion_type == "Compress Folder":
+            output_file = tmp_file_path.replace(".folder", ".zip")
+            result = compress_folder(tmp_file_path, output_file)
+        elif conversion_type == "Text File Cleaner":
+            output_file = tmp_file_path.replace(".txt", "_cleaned.txt")
+            result = text_file_cleaner(tmp_file_path, output_file)
+    except Exception as e:
+        result = f"Error: {str(e)}"
+    
+    # Display the result
+    st.write(result)
+    if output_file:
+        with open(output_file, 'rb') as f:
+            st.download_button("Download the converted file", f, file_name=output_file)
