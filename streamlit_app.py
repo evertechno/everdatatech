@@ -1,36 +1,49 @@
 import streamlit as st
 import os
 from tempfile import NamedTemporaryFile
-from PyPDF2 import PdfMerger
-from pptx import Presentation
 from fpdf import FPDF
 import markdown
-from ebooklib import epub
-from docx import Document
-import zipfile
-import shutil
 from PIL import Image
 import json
 import xml.etree.ElementTree as ET
-import cairosvg
-import csv
-import pandas as pd
-import wave
-import numpy as np
-import pyttsx3
-from datetime import datetime
+import html
+from html.parser import HTMLParser
+import zipfile
+import shutil
+from pptx import Presentation
 import pyqrcode
-from io import BytesIO
 import barcode
 from barcode.writer import ImageWriter
 import pytz
-from lxml import etree
-import subprocess
+from datetime import datetime
+from io import BytesIO
+import pandas as pd
+import pyttsx3
+import speech_recognition as sr
+from moviepy.editor import VideoFileClip
+import ebooklib
+from ebooklib import epub
 
-# Remove external dependencies for things like AutoCAD, Google Gemini, and other unsupported modules
+# Streamlit App UI Setup
+st.title("Advanced File Conversion Platform with AI Assistant")
+st.write("Convert various file formats and get assistance from the AI assistant.")
 
-# Conversion Functions (Updated)
+# File upload section
+uploaded_file = st.file_uploader("Upload your file", type=["dwg", "rvt", "ai", "fdr", "pptx", "txt", "zip", "jpg", "jpeg", "png", "md", "html", "epub", "json", "xml", "mp3", "mp4"])
 
+# Conversion options
+conversion_type = st.selectbox(
+    "Select the conversion format",
+    [
+        "DWG to PDF", "RVT to DWG", "AI to PDF", "FDR to PDF", "PPT to PDF", "TXT to PDF", 
+        "MD to PDF", "HTML to PDF", "EPUB to PDF", "JSON to PDF", "XML to PDF", "Extract ZIP", 
+        "Compress Folder", "Image to PDF", "Audio to Text", "Text to Speech", "Video to Audio", 
+        "QR Code Generator", "Barcode Generator", "HTML to Text", "CSV to Excel", "Excel to CSV",
+        "Markdown to Text", "Text to Markdown", "Text File Cleaner"
+    ]
+)
+
+# File conversion functions
 def convert_ppt_to_pdf(input_file, output_file):
     try:
         ppt = Presentation(input_file)
@@ -97,29 +110,6 @@ def convert_epub_to_pdf(input_file, output_file):
     except Exception as e:
         return f"Error in EPUB to PDF conversion: {str(e)}"
 
-def extract_zip(input_file, output_folder):
-    try:
-        with zipfile.ZipFile(input_file, 'r') as zip_ref:
-            zip_ref.extractall(output_folder)
-        return f"Extracted zip to {output_folder}"
-    except Exception as e:
-        return f"Error in extracting ZIP: {str(e)}"
-
-def compress_folder(input_folder, output_file):
-    try:
-        shutil.make_archive(output_file, 'zip', input_folder)
-        return output_file + ".zip"
-    except Exception as e:
-        return f"Error in compressing folder: {str(e)}"
-
-def convert_image_to_pdf(input_file, output_file):
-    try:
-        image = Image.open(input_file)
-        image.convert('RGB').save(output_file, "PDF")
-        return output_file
-    except Exception as e:
-        return f"Error in Image to PDF conversion: {str(e)}"
-
 def convert_json_to_pdf(input_file, output_file):
     try:
         with open(input_file, 'r') as f:
@@ -147,6 +137,30 @@ def convert_xml_to_pdf(input_file, output_file):
     except Exception as e:
         return f"Error in XML to PDF conversion: {str(e)}"
 
+def generate_qr_code(data, output_file):
+    try:
+        qr = pyqrcode.create(data)
+        qr.png(output_file, scale=6)
+        return output_file
+    except Exception as e:
+        return f"Error generating QR code: {str(e)}"
+
+def generate_barcode(data, output_file):
+    try:
+        barcode_obj = barcode.get('ean13', data, writer=ImageWriter())
+        barcode_obj.save(output_file)
+        return output_file
+    except Exception as e:
+        return f"Error generating barcode: {str(e)}"
+
+def convert_image_to_pdf(input_file, output_file):
+    try:
+        image = Image.open(input_file)
+        image.convert('RGB').save(output_file, "PDF")
+        return output_file
+    except Exception as e:
+        return f"Error in Image to PDF conversion: {str(e)}"
+
 def convert_audio_to_text(input_file):
     try:
         recognizer = sr.Recognizer()
@@ -166,31 +180,90 @@ def text_to_speech(input_text, output_audio):
     except Exception as e:
         return f"Error in text to speech conversion: {str(e)}"
 
-def generate_qr_code(data, output_file):
+def convert_video_to_audio(input_file, output_audio):
     try:
-        qr = pyqrcode.create(data)
-        qr.png(output_file, scale=6)
-        return output_file
+        video_clip = VideoFileClip(input_file)
+        video_clip.audio.write_audiofile(output_audio)
+        return output_audio
     except Exception as e:
-        return f"Error generating QR code: {str(e)}"
+        return f"Error in video to audio conversion: {str(e)}"
 
-def generate_barcode(data, output_file):
+# Helper functions for file operations
+def extract_zip(input_file, output_folder):
     try:
-        barcode_obj = barcode.get('ean13', data, writer=ImageWriter())
-        barcode_obj.save(output_file)
-        return output_file
+        with zipfile.ZipFile(input_file, 'r') as zip_ref:
+            zip_ref.extractall(output_folder)
+        return f"Extracted zip to {output_folder}"
     except Exception as e:
-        return f"Error generating barcode: {str(e)}"
+        return f"Error in extracting ZIP: {str(e)}"
 
-def html_to_text(input_file, output_file):
+def compress_folder(input_folder, output_file):
     try:
-        with open(input_file, 'r') as f:
-            html_content = f.read()
-        text = html.unescape(html_content)
-        with open(output_file, 'w') as f:
-            f.write(text)
-        return output_file
+        shutil.make_archive(output_file, 'zip', input_folder)
+        return output_file + ".zip"
     except Exception as e:
-        return f"Error converting HTML to text: {str(e)}"
+        return f"Error in compressing folder: {str(e)}"
 
-# Add more functions as needed based on the required conversions
+# Perform file conversion and display result
+if uploaded_file is not None and st.button("Convert"):
+    try:
+        with NamedTemporaryFile(delete=False) as tmp_file:
+            tmp_file.write(uploaded_file.read())
+            tmp_file_path = tmp_file.name
+
+        if conversion_type == "DWG to PDF":
+            output_file = tmp_file_path.replace(".dwg", ".pdf")
+            result = "DWG to PDF conversion is not yet implemented."
+        elif conversion_type == "RVT to DWG":
+            output_file = tmp_file_path.replace(".rvt", ".dwg")
+            result = "RVT to DWG conversion is not yet implemented."
+        elif conversion_type == "PPT to PDF":
+            output_file = tmp_file_path.replace(".pptx", ".pdf")
+            result = convert_ppt_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "TXT to PDF":
+            output_file = tmp_file_path.replace(".txt", ".pdf")
+            result = convert_txt_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "MD to PDF":
+            output_file = tmp_file_path.replace(".md", ".pdf")
+            result = convert_md_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "HTML to PDF":
+            output_file = tmp_file_path.replace(".html", ".pdf")
+            result = convert_html_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "EPUB to PDF":
+            output_file = tmp_file_path.replace(".epub", ".pdf")
+            result = convert_epub_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "JSON to PDF":
+            output_file = tmp_file_path.replace(".json", ".pdf")
+            result = convert_json_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "XML to PDF":
+            output_file = tmp_file_path.replace(".xml", ".pdf")
+            result = convert_xml_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "QR Code Generator":
+            output_file = tmp_file_path.replace(".txt", ".png")
+            result = generate_qr_code(tmp_file_path, output_file)
+        elif conversion_type == "Barcode Generator":
+            output_file = tmp_file_path.replace(".txt", ".png")
+            result = generate_barcode(tmp_file_path, output_file)
+        elif conversion_type == "Image to PDF":
+            output_file = tmp_file_path.replace((".jpg", ".jpeg", ".png"), ".pdf")
+            result = convert_image_to_pdf(tmp_file_path, output_file)
+        elif conversion_type == "Audio to Text":
+            result = convert_audio_to_text(tmp_file_path)
+        elif conversion_type == "Text to Speech":
+            output_audio = tmp_file_path.replace(".txt", ".mp3")
+            result = text_to_speech(tmp_file_path, output_audio)
+        elif conversion_type == "Video to Audio":
+            output_audio = tmp_file_path.replace(".mp4", ".mp3")
+            result = convert_video_to_audio(tmp_file_path, output_audio)
+        elif conversion_type == "Extract ZIP":
+            output_folder = tmp_file_path.replace(".zip", "")
+            result = extract_zip(tmp_file_path, output_folder)
+        elif conversion_type == "Compress Folder":
+            output_file = tmp_file_path + "_compressed"
+            result = compress_folder(tmp_file_path, output_file)
+
+        # Provide download link
+        st.success(f"Conversion completed successfully: {result}")
+        st.download_button("Download Converted File", data=open(output_file, "rb").read(), file_name=output_file)
+    except Exception as e:
+        st.error(f"Error: {str(e)}")
