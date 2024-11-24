@@ -6,11 +6,6 @@ import markdown
 from PIL import Image
 import json
 import xml.etree.ElementTree as ET
-import html
-from html.parser import HTMLParser
-import zipfile
-import shutil
-from pptx import Presentation
 import pyqrcode
 import barcode
 from barcode.writer import ImageWriter
@@ -188,39 +183,30 @@ def convert_video_to_audio(input_file, output_audio):
     except Exception as e:
         return f"Error in video to audio conversion: {str(e)}"
 
-# Helper functions for file operations
 def extract_zip(input_file, output_folder):
     try:
         with zipfile.ZipFile(input_file, 'r') as zip_ref:
             zip_ref.extractall(output_folder)
-        return f"Extracted zip to {output_folder}"
+        return f"Extracted to {output_folder}"
     except Exception as e:
-        return f"Error in extracting ZIP: {str(e)}"
+        return f"Error in zip extraction: {str(e)}"
 
 def compress_folder(input_folder, output_file):
     try:
         shutil.make_archive(output_file, 'zip', input_folder)
-        return output_file + ".zip"
+        return f"Folder compressed to {output_file}.zip"
     except Exception as e:
-        return f"Error in compressing folder: {str(e)}"
+        return f"Error in folder compression: {str(e)}"
 
-# Perform file conversion and display result
-if uploaded_file is not None and st.button("Convert"):
+# Handle file upload and conversion process
+if uploaded_file:
+    # Process uploaded file
+    with NamedTemporaryFile(delete=False) as tmp_file:
+        tmp_file.write(uploaded_file.getvalue())
+        tmp_file_path = tmp_file.name
+
     try:
-        with NamedTemporaryFile(delete=False) as tmp_file:
-            tmp_file.write(uploaded_file.read())
-            tmp_file_path = tmp_file.name
-
-        if conversion_type == "DWG to PDF":
-            output_file = tmp_file_path.replace(".dwg", ".pdf")
-            result = "DWG to PDF conversion is not yet implemented."
-        elif conversion_type == "RVT to DWG":
-            output_file = tmp_file_path.replace(".rvt", ".dwg")
-            result = "RVT to DWG conversion is not yet implemented."
-        elif conversion_type == "PPT to PDF":
-            output_file = tmp_file_path.replace(".pptx", ".pdf")
-            result = convert_ppt_to_pdf(tmp_file_path, output_file)
-        elif conversion_type == "TXT to PDF":
+        if conversion_type == "TXT to PDF":
             output_file = tmp_file_path.replace(".txt", ".pdf")
             result = convert_txt_to_pdf(tmp_file_path, output_file)
         elif conversion_type == "MD to PDF":
