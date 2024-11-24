@@ -209,6 +209,7 @@ if uploaded_file:
         tmp_file_path = tmp_file.name
 
     result = "No conversion performed"  # Default value for result
+    output_file = None  # Initialize output_file as None
 
     try:
         if conversion_type == "TXT to PDF":
@@ -254,7 +255,8 @@ if uploaded_file:
             result = compress_folder(tmp_file_path, output_file)
 
         # Provide download link
-        st.success(f"Conversion completed successfully: {result}")
-        st.download_button("Download Converted File", data=open(output_file, "rb").read(), file_name=output_file)
+        if output_file:
+            st.success(f"Conversion completed successfully: {result}")
+            st.download_button("Download Converted File", data=open(output_file, "rb").read(), file_name=output_file)
     except Exception as e:
         st.error(f"Error: {str(e)}")
