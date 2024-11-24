@@ -2,91 +2,34 @@ import streamlit as st
 import os
 from tempfile import NamedTemporaryFile
 from PyPDF2 import PdfMerger
-from reportlab.pdfgen import canvas
-from pyautocad import Autocad
-import google.generativeai as genai
 from pptx import Presentation
+from fpdf import FPDF
+import markdown
+from ebooklib import epub
+from docx import Document
 import zipfile
 import shutil
-from io import BytesIO
-from fpdf import FPDF
 from PIL import Image
 import json
 import xml.etree.ElementTree as ET
-import markdown
 import cairosvg
-from ebooklib import epub
-from docx import Document
-import xlrd
+import csv
 import pandas as pd
 import wave
 import numpy as np
-import speech_recognition as sr
 import pyttsx3
-import html
-from html.parser import HTMLParser
-from moviepy.editor import VideoFileClip
-import zipfile
-import sqlite3
-import base64
 from datetime import datetime
 import pyqrcode
 from io import BytesIO
 import barcode
 from barcode.writer import ImageWriter
 import pytz
-import socket
-import tempfile
-from docx.shared import Pt
-from pptx.util import Inches
-import math
-import openpyxl
-from docxtpl import DocxTemplate
-import markdown2
-import pytesseract
-from pdf2image import convert_from_path
-import csv
-from xlwt import Workbook
-import requests
-import urllib
 from lxml import etree
-import zipfile
-import shutil
 import subprocess
 
-# Configure the Gemini API with the API key from secrets.toml
-genai.configure(api_key=st.secrets["google"]["GOOGLE_API_KEY"])
+# Remove external dependencies for things like AutoCAD, Google Gemini, and other unsupported modules
 
 # Conversion Functions (Updated)
-def convert_dwg_to_pdf(input_file, output_file):
-    try:
-        acad = Autocad(create_if_not_exists=True)
-        acad.Documents.Open(input_file)
-        acad.ActiveDocument.Plot.PlotToFile(output_file)
-        return output_file
-    except Exception as e:
-        return f"Error in DWG to PDF conversion: {str(e)}"
-
-def convert_rvt_to_dwg(input_file, output_file):
-    try:
-        # Placeholder logic for RVT to DWG conversion
-        return f"Revit (.rvt) file converted to DWG: {output_file}"
-    except Exception as e:
-        return f"Error in Revit to DWG conversion: {str(e)}"
-
-def convert_ai_to_pdf(input_file, output_file):
-    try:
-        # Placeholder logic for AI to PDF conversion
-        return f"Adobe Illustrator (.ai) file converted to PDF: {output_file}"
-    except Exception as e:
-        return f"Error in AI to PDF conversion: {str(e)}"
-
-def convert_fdr_to_pdf(input_file, output_file):
-    try:
-        # Placeholder logic for FDR to PDF conversion
-        return f"Final Draft (.fdr) file converted to PDF: {output_file}"
-    except Exception as e:
-        return f"Error in FDR to PDF conversion: {str(e)}"
 
 def convert_ppt_to_pdf(input_file, output_file):
     try:
@@ -204,14 +147,6 @@ def convert_xml_to_pdf(input_file, output_file):
     except Exception as e:
         return f"Error in XML to PDF conversion: {str(e)}"
 
-def gemini_assistant(prompt):
-    try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        return f"Error with Gemini API: {str(e)}"
-
 def convert_audio_to_text(input_file):
     try:
         recognizer = sr.Recognizer()
@@ -230,14 +165,6 @@ def text_to_speech(input_text, output_audio):
         return output_audio
     except Exception as e:
         return f"Error in text to speech conversion: {str(e)}"
-
-def convert_video_to_audio(input_file, output_audio):
-    try:
-        video_clip = VideoFileClip(input_file)
-        video_clip.audio.write_audiofile(output_audio)
-        return output_audio
-    except Exception as e:
-        return f"Error in video to audio conversion: {str(e)}"
 
 def generate_qr_code(data, output_file):
     try:
