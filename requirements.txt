@@ -16,3 +16,4 @@ requests
 pyPDF
 pyttsx3
 docx
+PyPDF2
