@@ -21,13 +21,28 @@ from ebooklib import epub
 import shutil
 import zipfile
 from pptx import Presentation
+import base64
+import csv
+import io
+import docx
+import re
+import shutil
+from collections import Counter
+from urllib.parse import urlparse
+import hashlib
+import random
+import string
+import difflib
+import itertools
+import socket
+from datetime import timedelta
 
 # Streamlit App UI Setup
 st.title("Advanced File Conversion Platform with AI Assistant")
 st.write("Convert various file formats and get assistance from the AI assistant.")
 
 # File upload section
-uploaded_file = st.file_uploader("Upload your file", type=["dwg", "rvt", "ai", "fdr", "pptx", "txt", "zip", "jpg", "jpeg", "png", "md", "html", "epub", "json", "xml", "mp3", "mp4"])
+uploaded_file = st.file_uploader("Upload your file", type=["dwg", "rvt", "ai", "fdr", "pptx", "txt", "zip", "jpg", "jpeg", "png", "md", "html", "epub", "json", "xml", "mp3", "mp4", "docx"])
 
 # Conversion options
 conversion_type = st.selectbox(
@@ -37,7 +52,10 @@ conversion_type = st.selectbox(
         "MD to PDF", "HTML to PDF", "EPUB to PDF", "JSON to PDF", "XML to PDF", "Extract ZIP", 
         "Compress Folder", "Image to PDF", "Audio to Text", "Text to Speech", "Video to Audio", 
         "QR Code Generator", "Barcode Generator", "HTML to Text", "CSV to Excel", "Excel to CSV",
-        "Markdown to Text", "Text to Markdown", "Text File Cleaner"
+        "Markdown to Text", "Text to Markdown", "Text File Cleaner", "Word to PDF", "CSV to JSON",
+        "URL to HTML", "HTML to CSV", "Count Word Frequency", "String Similarity", "Random Password Generator",
+        "Hash String", "File Merger", "Convert Timezone", "Convert Case", "Create Custom JSON", "Date Difference",
+        "Unique Items Finder", "Compress Text", "Markdown to HTML", "Text to JSON", "CSV to TXT"
     ]
 )
 
@@ -200,6 +218,138 @@ def compress_folder(input_folder, output_file):
         return f"Folder compressed to {output_file}.zip"
     except Exception as e:
         return f"Error in folder compression: {str(e)}"
+
+# Additional Functions
+def convert_docx_to_pdf(input_file, output_file):
+    try:
+        from docx2txt import process
+        process(input_file, output_file)
+        return output_file
+    except Exception as e:
+        return f"Error in DOCX to PDF conversion: {str(e)}"
+
+def csv_to_json(input_file, output_file):
+    try:
+        df = pd.read_csv(input_file)
+        df.to_json(output_file, orient="records", lines=True)
+        return output_file
+    except Exception as e:
+        return f"Error in CSV to JSON conversion: {str(e)}"
+
+def url_to_html(input_url, output_file):
+    try:
+        from requests import get
+        response = get(input_url)
+        with open(output_file, "w") as file:
+            file.write(response.text)
+        return output_file
+    except Exception as e:
+        return f"Error in URL to HTML conversion: {str(e)}"
+
+def count_word_frequency(input_text):
+    try:
+        words = input_text.split()
+        return dict(Counter(words))
+    except Exception as e:
+        return f"Error in counting word frequency: {str(e)}"
+
+def string_similarity(input_string1, input_string2):
+    try:
+        return difflib.SequenceMatcher(None, input_string1, input_string2).ratio()
+    except Exception as e:
+        return f"Error in string similarity: {str(e)}"
+
+def generate_random_password(length=12):
+    try:
+        chars = string.ascii_letters + string.digits + string.punctuation
+        return ''.join(random.choice(chars) for _ in range(length))
+    except Exception as e:
+        return f"Error in random password generation: {str(e)}"
+
+def hash_string(input_string):
+    try:
+        return hashlib.sha256(input_string.encode()).hexdigest()
+    except Exception as e:
+        return f"Error in hashing string: {str(e)}"
+
+def merge_files(input_files, output_file):
+    try:
+        with open(output_file, 'wb') as f_out:
+            for input_file in input_files:
+                with open(input_file, 'rb') as f_in:
+                    shutil.copyfileobj(f_in, f_out)
+        return output_file
+    except Exception as e:
+        return f"Error in file merging: {str(e)}"
+
+def convert_timezone(input_datetime, from_tz, to_tz):
+    try:
+        local_time = pytz.timezone(from_tz).localize(input_datetime)
+        new_time = local_time.astimezone(pytz.timezone(to_tz))
+        return new_time
+    except Exception as e:
+        return f"Error in timezone conversion: {str(e)}"
+
+def convert_case(input_string, case_type="upper"):
+    try:
+        if case_type == "upper":
+            return input_string.upper()
+        elif case_type == "lower":
+            return input_string.lower()
+        elif case_type == "title":
+            return input_string.title()
+        else:
+            return input_string
+    except Exception as e:
+        return f"Error in case conversion: {str(e)}"
+
+def create_custom_json(data):
+    try:
+        return json.dumps(data, indent=4)
+    except Exception as e:
+        return f"Error in creating custom JSON: {str(e)}"
+
+def date_difference(date1, date2):
+    try:
+        delta = date2 - date1
+        return str(delta)
+    except Exception as e:
+        return f"Error in date difference calculation: {str(e)}"
+
+def find_unique_items(input_list):
+    try:
+        return list(set(input_list))
+    except Exception as e:
+        return f"Error in finding unique items: {str(e)}"
+
+def compress_text(input_text):
+    try:
+        return zlib.compress(input_text.encode())
+    except Exception as e:
+        return f"Error in compressing text: {str(e)}"
+
+def markdown_to_html(input_file):
+    try:
+        with open(input_file, 'r') as file:
+            text = file.read()
+        return markdown.markdown(text)
+    except Exception as e:
+        return f"Error in converting markdown to HTML: {str(e)}"
+
+def text_to_json(input_text):
+    try:
+        data = {"text": input_text}
+        return json.dumps(data, indent=4)
+    except Exception as e:
+        return f"Error in converting text to JSON: {str(e)}"
+
+def csv_to_txt(input_file, output_file):
+    try:
+        df = pd.read_csv(input_file)
+        df.to_csv(output_file, index=False, header=False)
+        return output_file
+    except Exception as e:
+        return f"Error in CSV to TXT conversion: {str(e)}"
 
 # Handle file upload and conversion process
 if uploaded_file:
