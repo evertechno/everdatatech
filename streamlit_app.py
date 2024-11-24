@@ -15,24 +15,23 @@ import ebooklib
 from ebooklib import epub
 import shutil
 import zipfile
+import os
 from pptx import Presentation
 
 # Streamlit App UI Setup
-st.title("Advanced File Conversion Platform with AI Assistant")
-st.write("Convert various file formats and get assistance from the AI assistant.")
+st.title("Advanced File Conversion Platform")
+st.write("Convert various file formats and access tools like QR code generation, text-to-speech, etc.")
 
 # File upload section
-uploaded_file = st.file_uploader("Upload your file", type=["dwg", "rvt", "ai", "fdr", "pptx", "txt", "zip", "jpg", "jpeg", "png", "md", "html", "epub", "json", "xml", "mp3", "mp4"])
+uploaded_file = st.file_uploader("Upload your file", type=["dwg", "rvt", "ai", "pptx", "txt", "zip", "jpg", "jpeg", "png", "md", "html", "epub", "json", "xml", "mp3", "mp4"])
 
 # Conversion options
 conversion_type = st.selectbox(
     "Select the conversion format",
     [
-        "DWG to PDF", "RVT to DWG", "AI to PDF", "FDR to PDF", "PPT to PDF", "TXT to PDF", 
-        "MD to PDF", "HTML to PDF", "EPUB to PDF", "JSON to PDF", "XML to PDF", "Extract ZIP", 
-        "Compress Folder", "Image to PDF", "Audio to Text", "Text to Speech", "Video to Audio", 
-        "QR Code Generator", "Barcode Generator", "HTML to Text", "CSV to Excel", "Excel to CSV",
-        "Markdown to Text", "Text to Markdown", "Text File Cleaner"
+        "PPT to PDF", "TXT to PDF", "MD to PDF", "HTML to PDF", "EPUB to PDF", "JSON to PDF", 
+        "XML to PDF", "Image to PDF", "Audio to Text", "Text to Speech", "Video to Audio", 
+        "QR Code Generator", "Barcode Generator", "Extract ZIP", "Compress Folder"
     ]
 )
 
@@ -43,7 +42,8 @@ def convert_ppt_to_pdf(input_file, output_file):
         pdf_writer = FPDF()
         pdf_writer.add_page()
         for slide in ppt.slides:
-            pdf_writer.cell(200, 10, txt=slide.shapes.title.text, ln=True)
+            if slide.shapes.title:
+                pdf_writer.cell(200, 10, txt=slide.shapes.title.text, ln=True)
         pdf_writer.output(output_file)
         return output_file
     except Exception as e:
@@ -157,8 +157,7 @@ def convert_image_to_pdf(input_file, output_file):
 def convert_audio_to_text(input_file):
     try:
         recognizer = sr.Recognizer()
-        audio = sr.AudioFile(input_file)
-        with audio as source:
+        with sr.AudioFile(input_file) as source:
             audio_data = recognizer.record(source)
         return recognizer.recognize_google(audio_data)
     except Exception as e:
@@ -176,7 +175,7 @@ def text_to_speech(input_text, output_audio):
 def convert_video_to_audio(input_file, output_audio):
     try:
         video_clip = VideoFileClip(input_file)
-        video_clip.audio.write_audiofile(output_audio)
+        video_clip.audio.write_audiofile(output_audio, codec='libmp3lame')  # Ensure codec is specified
         return output_audio
     except Exception as e:
         return f"Error in video to audio conversion: {str(e)}"
@@ -195,17 +194,6 @@ def compress_folder(input_folder, output_file):
         return f"Folder compressed to {output_file}.zip"
     except Exception as e:
         return f"Error in folder compression: {str(e)}"
-
-def text_file_cleaner(input_file, output_file):
-    try:
-        with open(input_file, 'r') as file:
-            content = file.read()
-        cleaned_content = content.strip().replace("\n", " ").replace("\r", "")
-        with open(output_file, 'w') as file:
-            file.write(cleaned_content)
-        return output_file
-    except Exception as e:
-        return f"Error in Text File Cleaner: {str(e)}"
 
 # Handle file upload and conversion process
 if uploaded_file:
@@ -262,9 +250,6 @@ if uploaded_file:
         elif conversion_type == "Compress Folder":
             output_file = tmp_file_path.replace(".folder", ".zip")
             result = compress_folder(tmp_file_path, output_file)
-        elif conversion_type == "Text File Cleaner":
-            output_file = tmp_file_path.replace(".txt", "_cleaned.txt")
-            result = text_file_cleaner(tmp_file_path, output_file)
     except Exception as e:
         result = f"Error: {str(e)}"
     
@@ -273,3 +258,4 @@ if uploaded_file:
     if output_file:
         with open(output_file, 'rb') as f:
             st.download_button("Download the converted file", f, file_name=output_file)
+
