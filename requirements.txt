@@ -1,6 +1,6 @@
 streamlit
 streamlit
-fpdf7
+fpdf
 Pillow
 markdown
 ebooklib
