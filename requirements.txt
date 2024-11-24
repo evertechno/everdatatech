@@ -4,7 +4,6 @@ fpdf
 Pillow
 markdown
 ebooklib
-pyttsx
 pyqrcode
 python-barcode
 SpeechRecognition
@@ -15,3 +14,4 @@ openpyxl
 xlrd
 requests
 pyPDF
+pyttsx3
