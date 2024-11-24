@@ -18,6 +18,9 @@ import speech_recognition as sr
 from moviepy.editor import VideoFileClip
 import ebooklib
 from ebooklib import epub
+import shutil
+import zipfile
+from pptx import Presentation
 
 # Streamlit App UI Setup
 st.title("Advanced File Conversion Platform with AI Assistant")
@@ -204,6 +207,8 @@ if uploaded_file:
     with NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file.write(uploaded_file.getvalue())
         tmp_file_path = tmp_file.name
+
+    result = "No conversion performed"  # Default value for result
 
     try:
         if conversion_type == "TXT to PDF":
