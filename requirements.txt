@@ -17,3 +17,4 @@ pyPDF
 pyttsx3
 docx
 PyPDF2
+reportlab
