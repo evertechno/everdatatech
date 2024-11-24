@@ -16,4 +16,3 @@ requests
 pyPDF
 pyttsx3
 docx
-exceptions
