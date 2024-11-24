@@ -1,1 +1,17 @@
 streamlit
+streamlit
+fpdf7
+Pillow
+markdown
+ebooklib
+pyttsx
+pyqrcode
+python-barcode
+SpeechRecognition
+python-pptx
+moviepy
+pandas
+openpyxl
+xlrd
+requests
+pyPDF
