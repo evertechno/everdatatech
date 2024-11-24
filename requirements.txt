@@ -10,3 +10,7 @@ pandas
 moviepy
 ebooklib
 xmltodict
+SpeechRecognition 
+zipfile36
+shutil
+pyzbar
